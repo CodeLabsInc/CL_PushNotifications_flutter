@@ -1,7 +1,8 @@
-
 import 'dart:async';
+import 'dart:io';
 
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' hide MessageHandler;
 
 class CLPushNotifications {
   static const MethodChannel _channel =
