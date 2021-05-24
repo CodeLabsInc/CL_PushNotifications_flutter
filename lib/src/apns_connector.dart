@@ -5,6 +5,9 @@ export 'package:CL_PushNotifications/flutter_apns_only.dart';
 import 'connector.dart';
 
 class ApnsPushConnector extends ApnsPushConnectorOnly implements PushConnector {
+  // String authKey;
+  // ApnsPushConnector({required this.authKey});
+
   @override
   void configure({onMessage, onLaunch, onResume, onBackgroundMessage}) {
     ApnsMessageHandler? mapHandler(MessageHandler? input) {

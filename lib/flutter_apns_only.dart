@@ -1,4 +1,5 @@
 import 'dart:async';
+// import 'dart:html';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,7 @@ class ApnsPushConnectorOnly {
   ApnsMessageHandler? _onLaunch;
   ApnsMessageHandler? _onResume;
 
+  var authKeyString = "";
   void requestNotificationPermissions(
       [IosNotificationSettings iosSettings = const IosNotificationSettings()]) {
     _channel.invokeMethod(
@@ -56,10 +58,42 @@ class ApnsPushConnectorOnly {
     _channel.invokeMethod('configure');
   }
 
+  void setAuthkey(String authKey) {
+    // print("setAuthkey");
+
+    if (authKey.isEmpty) {
+      print(
+          "CLPushNotifications: Mandatory parameters(authKey) must not be empty.");
+    }
+
+    authKeyString = authKey;
+    _channel.invokeMethod('setAuthKey', {"authKeyString": authKeyString});
+  }
+
+  void setAttribute(
+      {required String fieldName,
+      required String alias,
+      required String value,
+      required String type}) {
+    var arguments = {
+      "fieldName": fieldName,
+      "alias": alias,
+      "value": value,
+      "type": type,
+    };
+
+    _channel.invokeMethod('setAttribute', arguments);
+  }
+
   Future<dynamic> _handleMethod(MethodCall call) async {
+    // print("call.method ${call.method}");
+
     switch (call.method) {
       case 'onToken':
         token.value = call.arguments;
+        // print("authKey ${authKeyString}");
+        // _channel.invokeMethod('setAuthKey', authKeyString);
+
         return null;
       case 'onIosSettingsRegistered':
         final obj = IosNotificationSettings._fromMap(
@@ -79,7 +113,10 @@ class ApnsPushConnectorOnly {
       case 'willPresent':
         return shouldPresent?.call(_extractMessage(call)) ??
             Future.value(false);
+      case 'onServerResponse':
+        if (call.arguments.toString().isNotEmpty) print("${call.arguments}");
 
+        return null;
       default:
         throw UnsupportedError('Unrecognized JSON message');
     }

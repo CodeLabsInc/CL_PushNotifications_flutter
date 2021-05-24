@@ -17,7 +17,7 @@ abstract class PushConnector {
   /// Either GCM or APNS
   String get providerType;
 
-  late String authKey;
+  // late String authKey;
 
   /// Configures callbacks for supported message situations.
   /// It should be called as soon as app is launch or you won't get the `onLaunch` callback
@@ -33,6 +33,14 @@ abstract class PushConnector {
   /// After user makes their choice, isDisabledByUser will become either true or false.
   /// If accepted, token.value will be set
   void requestNotificationPermissions();
+
+  void setAuthkey(String authKey);
+
+  void setAttribute(
+      {required String fieldName,
+      required String alias,
+      required String value,
+      required String type});
 
   /// Unregisters from the service and clears the token.
   Future<void> unregister();

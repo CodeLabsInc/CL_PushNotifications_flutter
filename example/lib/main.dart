@@ -21,6 +21,9 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _register() async {
     final connector = this.connector;
+
+    connector.setAuthkey("91c4a1e7fb0d458faeceae08296954f9");
+
     connector.configure(
       onLaunch: (data) => onPush('onLaunch', data),
       onResume: (data) => onPush('onResume', data),
@@ -31,6 +34,13 @@ class _MyAppState extends State<MyApp> {
       print('Token ${connector.token.value}');
     });
     connector.requestNotificationPermissions();
+
+    connector.setAttribute(
+      fieldName: "first name",
+      alias: "f_name",
+      value: "Mehdi flutter",
+      type: "text",
+    );
 
     if (connector is ApnsPushConnector) {
       connector.shouldPresent = (x) async {
@@ -62,6 +72,7 @@ class _MyAppState extends State<MyApp> {
   Future<dynamic> onPush(String name, RemoteMessage payload) {
     // storage.append('$name: ${payload.notification?.title}');
 
+    print("${name} ${payload.toString()}");
     final action = UNNotificationAction.getIdentifier(payload.data);
 
     if (action != null && action != UNNotificationAction.defaultIdentifier) {
@@ -76,10 +87,11 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void initState() {
+    print("initstate");
     _register();
 
     super.initState();
-    initPlatformState();
+    // initPlatformState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

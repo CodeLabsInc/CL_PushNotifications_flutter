@@ -11,7 +11,7 @@ func simpleGetUrlRequestWithErrorHandling(url : URL, completionHandler : @escapi
             
             if error != nil || data == nil {
                 print("CLPushNotifications: Client error!")
-                 return
+                 return 
             }
             
             guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
@@ -42,7 +42,7 @@ func simpleGetUrlRequestWithErrorHandling(url : URL, completionHandler : @escapi
     }
 
 
-func PostRequestWithParamsAndErrorHandling(url : URL, parameters: Data, completionHandler : @escaping (Data?, URLResponse?, Error?) -> Void){
+func PostRequestWithParamsAndErrorHandling(url : URL, parameters: Data, completionHandler : @escaping (Data?, URLResponse?, Error?, String?) -> ()){
         let configuration = URLSessionConfiguration.default
         configuration.timeoutIntervalForRequest = 30
         configuration.timeoutIntervalForResource = 30
@@ -68,31 +68,45 @@ func PostRequestWithParamsAndErrorHandling(url : URL, parameters: Data, completi
          print("BODY \n \(str)")
         let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
             
+            var messageToShow = ""
+            
             if error != nil || data == nil {
                 print("CLPushNotifications: Client error!")
+                messageToShow = "CLPushNotifications: Client error!"
                 return
             }
             
             guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
                 print("CLPushNotifications: Oops!! there is server error!")
+                messageToShow = "CLPushNotifications: Oops!! there is server error!"
+
                 return
             }
             
             guard let mime = response.mimeType, mime == "application/json" else {
                 print("CLPushNotifications: response is not json")
+                messageToShow = "CLPushNotifications: response is not json"
+
                 return
             }
             
             do {
                 let json = try JSONDecoder().decode(ServerResponse.self, from: data!)
-                print("CLPushNotifications:  ",json.response.responseMessage)
+                messageToShow = "CLPushNotifications:  \(json.response.responseMessage)"
+
+//                print(messageToShow)
+
             } catch {
-                print("CLPushNotifications: JSON error: \(error.localizedDescription)")
+                messageToShow = "CLPushNotifications: JSON error: \(error.localizedDescription)"
+
+//                print(messageToShow)
+
             }
             
             
-            
-            completionHandler(data, response,error)
+            print("messageToShow \(messageToShow)")
+
+            completionHandler(data, response,error, messageToShow)
 
         })
         

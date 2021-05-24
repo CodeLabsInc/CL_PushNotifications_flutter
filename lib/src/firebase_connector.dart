@@ -42,6 +42,25 @@ class FirebasePushConnector extends PushConnector {
     token.value = await firebase.getToken();
   }
 
+  void setAuthkey(String authKey) {
+    print("setAuthkey");
+
+    if (authKey.isEmpty) {
+      print(
+          "CLPushNotifications: Mandatory parameters(authKey) must not be empty.");
+    }
+
+    // _channel.invokeMethod('setAuthKey', authKey);
+  }
+
+  void setAttribute(
+      {required String fieldName,
+      required String alias,
+      required String value,
+      required String type}) {
+    // _channel.invokeMethod('setAttribute', authKeyString);
+  }
+
   @override
   final token = ValueNotifier(null);
 
