@@ -39,31 +39,31 @@ public class CLPushNotificationHandler {
     private var isAuthenticated = false
     private var isAllMandatoryFilled = false
     let uuid = UIDevice.current.identifierForVendor!.uuidString
-
+    
     let mainURL = "http://dev.codelabs.inc/projects/mass_notification/public/api/data_of_access_key"
     
     
     
     private var registrationToken : RegistrationToken?
     private var attributes : [Attribute] = []
-
+    
     init() {
- 
+        
         
         
     }
     
-   
+    
     
     public typealias NewTokenHandlerArguments = (tokenData: Data?, token: String?, error: Error?)
-//    private var newTokenHandler: (NewTokenHandlerArguments) -> Void = {_,_,_ in}
+    //    private var newTokenHandler: (NewTokenHandlerArguments) -> Void = {_,_,_ in}
     private var newTokenHandler: (NewTokenHandlerArguments) -> Void = { (arg) in let (_, _, _) = arg; }
-
+    
     private func alreadySubscribedIndex(potentialSubscriber: PushNotificationSubscriber) -> Int? {
         return subscribers.index(where: { (weakSubscriber) -> Bool in
             guard let validPotentialSubscriber = potentialSubscriber as? UIViewController,
-                let validWeakSubscriber = weakSubscriber.get() else {
-                    return false
+                  let validWeakSubscriber = weakSubscriber.get() else {
+                return false
             }
             
             return validPotentialSubscriber === validWeakSubscriber
@@ -98,10 +98,10 @@ public class CLPushNotificationHandler {
             application.registerForRemoteNotifications()
         }
         
-     
+        
     }
     
-    public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) -> String{
         
         let tokenString = deviceToken.map { String(format: "%02.2hhx", arguments: [$0]) }.joined()
         
@@ -110,11 +110,10 @@ public class CLPushNotificationHandler {
         
         
         //TODO: Share the token with backend
-//        uuid
-
+        //        uuid
         
-            runAuthParaService()
         
+        return runAuthParaService()
     }
     
     public func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
@@ -128,7 +127,7 @@ public class CLPushNotificationHandler {
     public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any]) {
         
         
-//        print("****Function: \(#function), line: \(#line)****\n-- ")
+        //        print("****Function: \(#function), line: \(#line)****\n-- ")
         let aps = userInfo["aps"]
         print("aps \(String(describing: aps!))")
         handleAPNS(aps: aps as! [AnyHashable : Any])
@@ -137,33 +136,33 @@ public class CLPushNotificationHandler {
     private func handleAPNS(aps: [AnyHashable : Any]) {
         
         print("****Function: \(#function), line: \(#line)****\n-- ")
-
+        
         for containerOfSubscriber in subscribers {
             (containerOfSubscriber.get() as? PushNotificationSubscriber)?.newPushNotificationReceived(aps: aps)
         }
         
         
         
-//         if #available(iOS 10.0, *) {
-//            PushNotificationManager.sharedInstance.normalPushNotification(withTitle: "title", subTitle: "tit", body: "body", userInfo: [:], identifier: "1", timeInterval: 5, repeats: false)
-//        }
+        //         if #available(iOS 10.0, *) {
+        //            PushNotificationManager.sharedInstance.normalPushNotification(withTitle: "title", subTitle: "tit", body: "body", userInfo: [:], identifier: "1", timeInterval: 5, repeats: false)
+        //        }
         
         // Create new notifcation content instance
         
         
-      
+        
         if #available(iOS 10.0, *) {
             let notificationContent = UNMutableNotificationContent()
-       
+            
             notificationContent.title = "Test"
             notificationContent.body = "Test body"
             notificationContent.badge = NSNumber(value: 3)
             
             if let url = Bundle.main.url(forResource: "dune",
-                                        withExtension: "png") {
+                                         withExtension: "png") {
                 if let attachment = try? UNNotificationAttachment(identifier: "dune",
-                                                                url: url,
-                                                                options: nil) {
+                                                                  url: url,
+                                                                  options: nil) {
                     notificationContent.attachments = [attachment]
                 }
             }
@@ -173,20 +172,20 @@ public class CLPushNotificationHandler {
             let request = UNNotificationRequest(identifier: "testNotification",
                                                 content: notificationContent,
                                                 trigger: trigger)
-        let userNotificationCenter = UNUserNotificationCenter.current()
-
+            let userNotificationCenter = UNUserNotificationCenter.current()
+            
             userNotificationCenter.add(request) { (error) in
                 if let error = error {
                     print("Notification Error: ", error)
                 }
             }
-       
+            
         } else {
             // Fallback on earlier versions
         }
     }
     
-
+    
     public func handleApplicationStartWith(application: UIApplication, launchOptions: [UIApplication.LaunchOptionsKey : Any]?) {
         if let notification = launchOptions?[.remoteNotification] as? [String: AnyObject] {
             if let aps = notification["aps"] as? [String: AnyObject] {
@@ -206,7 +205,7 @@ public class CLPushNotificationHandler {
         
         
         if String.isNilOrEmpty(string: authKey)
-//            || String.isNilOrEmpty(string: userID) || String.isNilOrEmpty(string: firstName) || String.isNilOrEmpty(string: lastName)
+        //            || String.isNilOrEmpty(string: userID) || String.isNilOrEmpty(string: firstName) || String.isNilOrEmpty(string: lastName)
         {
             
             print("CLPushNotifications: Mandatory parameters(authKey) must not be empty.")
@@ -217,71 +216,95 @@ public class CLPushNotificationHandler {
         self.isAllMandatoryFilled = true
         
         self.authKey = authKey
- 
         
         
         
         
-      
         
-//        self.isAuthenticated 
-
- 
+        
+        
+        //        self.isAuthenticated
+        
+        
+    }
+    
+    func setToken(token: String){
+        self.apnsToken = token
     }
     
     
     
-    func runAuthParaService(){
+    func runAuthParaService() -> String{
         //TODO: - Verify key from the server
         
+        var messageToReturn = ""
+        print("****Function: \(#function), line: \(#line)****\n-- ")
+        print("apns token \(apnsToken), authKey \(authKey)")
         
         if !isAllMandatoryFilled || (apnsToken?.isEmpty ?? true) {
-            print("CLPushNotifications: Mandatory parameters(authKey or token) must not be empty.")
-
-            return
+            
+            let message = "CLPushNotifications: Mandatory parameters(authKey or token) must not be empty."
+            print(message)
+            
+            return message
         }
         
         
         
-//        registrationToken = RegistrationToken(uni: uuid, token: apnsToken ?? "", phoneModel: UIDevice().type.rawValue, os: "IOS", sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), latitude: "", longitude: "")
-//        customer = Customer(customerCustomID: Int(self.userID!)!, firstName: self.firstName!, lastName: self.lastName!, personalNumber: self.personalNumber ?? "", email: self.email ?? "", dob: self.dob ?? "", address: self.address ?? "")
+        //        registrationToken = RegistrationToken(uni: uuid, token: apnsToken ?? "", phoneModel: UIDevice().type.rawValue, os: "IOS", sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), latitude: "", longitude: "")
+        //        customer = Customer(customerCustomID: Int(self.userID!)!, firstName: self.firstName!, lastName: self.lastName!, personalNumber: self.personalNumber ?? "", email: self.email ?? "", dob: self.dob ?? "", address: self.address ?? "")
         
-        registrationToken = RegistrationToken(os: "IOS", longitude: "23", phoneModel: UIDevice().type.rawValue ,sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), latitude: "23",  token: apnsToken ?? "", uniqueID: uuid)
-//        attributes.append(Attribute(alias: "Address", fieldName: "customer_address", value: "Hno. 123 sector 41 B korangi karachi"))
-//        attributes.append(Attribute(alias: "App User Name", fieldName: "firstName", value: self.firstName ?? " "))
-//        attributes.append(Attribute(alias: "Date Of Birth", fieldName: "dob", value: self.dob ?? " "))
-//        attributes.append(Attribute(alias: "Email Address", fieldName: "email", value: self.email ?? " "))
-
+        registrationToken = RegistrationToken(os: "IOS", phoneModel: UIDevice().type.rawValue ,sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), token: apnsToken ?? "", uniqueID: uuid)
+        //        attributes.append(Attribute(alias: "Address", fieldName: "customer_address", value: "Hno. 123 sector 41 B korangi karachi"))
+        //        attributes.append(Attribute(alias: "App User Name", fieldName: "firstName", value: self.firstName ?? " "))
+        //        attributes.append(Attribute(alias: "Date Of Birth", fieldName: "dob", value: self.dob ?? " "))
+        //        attributes.append(Attribute(alias: "Email Address", fieldName: "email", value: self.email ?? " "))
+        
         let json = FullJson(accessKey: self.authKey!, registrationToken: registrationToken!, attributes: attributes)
         
-//        print("json \(json)")
+        //        print("json \(json)")
         
-      
+        
+//        let semaphore = DispatchSemaphore(value: 0)
         
         do {
             let data = try JSONEncoder().encode(json)
             
- 
+            
             
             
             //all fine with jsonData here
-            PostRequestWithParamsAndErrorHandling(url: URL(string: "\(mainURL)")!, parameters: data ) { (data, response, error) in
+            PostRequestWithParamsAndErrorHandling(url: URL(string: "\(mainURL)")!, parameters: data ) { (data, response, error,message)  in
+                
+                messageToReturn = message ?? ""
+                //                return message ?? ""
+                
+//                semaphore.signal()
+                
                 
             }
             
         } catch {
             //handle error
             print(error)
-        }
+//            semaphore.signal()
 
-    
+            return error.localizedDescription
+        }
+        
+//        semaphore.wait()
+        
+        
+        return messageToReturn
     }
     
     
-    public func setAttribute(fieldName : String, alias:String, value:String) {
+    public func setAttribute( fieldName fName : String, alias:String, value:String, type: String) {
         print("****Function: \(#function), line: \(#line)****\n-- ")
         
-        if String.isNilOrEmpty(string: fieldName)
+   
+
+        if String.isNilOrEmpty(string: fName)
             || String.isNilOrEmpty(string: alias) || String.isNilOrEmpty(string: value)
         {
             
@@ -289,6 +312,17 @@ public class CLPushNotificationHandler {
             
             return
         }
+        
+        
+        print("fieldName before \(fName)")
+        var fieldName = fName.trimmingCharacters(in: .whitespaces)
+        
+        
+         fieldName = fieldName.components(separatedBy: " ")
+            .filter { !$0.isEmpty }.joined(separator: "_")
+            
+        print("fieldName after \(fieldName)")
+        
         
         
         if let row = (attributes.firstIndex(where: { attribute in
@@ -301,15 +335,15 @@ public class CLPushNotificationHandler {
             print("CLPushNotifications: Attribute \(self.attributes[row].fieldName) has been modified.")
 
         }else{
-            self.attributes.append(Attribute(fieldName: fieldName, alias: alias, value: value))
+            self.attributes.append(Attribute(fieldName: fieldName, alias: alias, value: value, type: type))
             print("CLPushNotifications: Attribute \(fieldName) has been added.")
             
         }
         
         runAuthParaService()
         print("Attributes \(self.attributes)")
-     }
-  
+    }
+    
     
     
     public func setAttribute(attributes newAttributes: [Attribute]){
@@ -342,7 +376,7 @@ public class CLPushNotificationHandler {
     
     public func setUserDetails(userDetails: [String : Any]){
         //TODO: set user details.
-
+        
         
     }
     

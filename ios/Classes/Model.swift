@@ -15,10 +15,10 @@ struct FullJson: Codable {
 public struct Attribute: Codable {
     
     
-    public init(fieldName : String,alias : String, value: String ) {
+    public init(fieldName : String,alias : String, value: String, type: String ) {
         
         if String.isNilOrEmpty(string: fieldName)
-            || String.isNilOrEmpty(string: alias) || String.isNilOrEmpty(string: value)
+            || String.isNilOrEmpty(string: alias) || String.isNilOrEmpty(string: value) || String.isNilOrEmpty(string: type)
         {
             print("CLPushNotifications: Mandatory parameters of attribute must not be empty.")
 
@@ -26,23 +26,25 @@ public struct Attribute: Codable {
         self.alias = alias
         self.fieldName = fieldName
         self.value = value
+        self.type = type
     }
-    public var alias, fieldName, value: String
-
-   public enum CodingKeys: String, CodingKey {
+    public var alias, fieldName, value, type: String
+    
+    public enum CodingKeys: String, CodingKey {
         case alias
         case fieldName = "field_name"
         case value
+        case type
     }
 }
 
 // MARK: - RegistrationToken
 struct RegistrationToken: Codable {
-    let os, longitude, phoneModel, sdkVersion: String
-    let latitude, token, uniqueID: String
+    let os, phoneModel, sdkVersion: String
+    let  token, uniqueID: String
 
     enum CodingKeys: String, CodingKey {
-        case os, longitude, phoneModel, sdkVersion, latitude, token
+        case os, phoneModel, sdkVersion, token
         case uniqueID = "uniqueId"
     }
 }

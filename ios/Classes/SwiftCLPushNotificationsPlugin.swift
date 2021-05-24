@@ -27,6 +27,8 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
         self.channel = channel
     }
     
+ 
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "flutter_apns", binaryMessenger: registrar.messenger())
         let instance = SwiftCLPushNotificationsPlugin(channel: channel)
@@ -39,6 +41,8 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
     var resumingFromBackground = false
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        
+        
         switch call.method {
         case "requestNotificationPermissions":
             requestNotificationPermissions(call, result: result)
@@ -65,6 +69,38 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
         case "setNotificationCategories":
             setNotificationCategories(arguments: call.arguments!)
             result(nil)
+            
+        case "setAuthKey":
+            
+            if let arguments = call.arguments as? [String : String]{
+
+                print("setAuthKey \(arguments["authKeyString"] ?? "")")
+
+            CLPushNotificationHandler.sharedInstance.setAuthParameters(authKey: arguments["authKeyString"] ?? "")
+                
+                
+            }
+            result(nil)
+
+            
+        case "setAttribute":
+            print("handle \(call.method) - \(call.arguments)")
+
+            
+            
+            
+            if let arguments = call.arguments as? [String : String]{
+                
+                print("arguments[fieldName] \(arguments["fieldName"] ?? "")")
+                print("arguments[value] \(arguments["value"] ?? "")")
+                
+                
+                CLPushNotificationHandler.sharedInstance.setAttribute(fieldName: arguments["fieldName"] ?? "", alias: arguments["alias"] ?? "", value: arguments["value"] ?? "", type: arguments["type"] ?? "" )
+                
+            }
+            
+            result(nil)
+
         default:
             assertionFailure(call.method)
             result(FlutterMethodNotImplemented)
@@ -199,10 +235,16 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
     
     public func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
         channel.invokeMethod("onToken", arguments: deviceToken.hexString)
+        CLPushNotificationHandler.sharedInstance.setToken(token: deviceToken.hexString)
+ 
+        channel.invokeMethod("onServerResponse", arguments:CLPushNotificationHandler.sharedInstance.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken))
+
     }
     
     
+    
     public func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) -> Bool {
+        print("****Function: \(#function), line: \(#line)****\n-- ")
         let userInfo = FlutterApnsSerialization.remoteMessageUserInfo(toDict: userInfo)
         
         if resumingFromBackground {
@@ -216,6 +258,8 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        print("****Function: \(#function), line: \(#line)****\n-- ")
         let userInfo = notification.request.content.userInfo
         
         guard userInfo["aps"] != nil else {
@@ -231,12 +275,15 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
             } else {
                 completionHandler([])
                 let userInfo = FlutterApnsSerialization.remoteMessageUserInfo(toDict: userInfo)
+//                print("userInfo \(userInfo) ")
+
                 self.channel.invokeMethod("onMessage", arguments: userInfo)
             }
         }
     }
     
     public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+        print("****Function: \(#function), line: \(#line)****\n-- ")
         var userInfo = response.notification.request.content.userInfo
         guard userInfo["aps"] != nil else {
             return
