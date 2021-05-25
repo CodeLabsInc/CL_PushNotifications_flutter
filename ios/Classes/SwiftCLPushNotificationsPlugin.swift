@@ -22,9 +22,12 @@ func getFlutterError(_ error: Error) -> FlutterError {
     return FlutterError(code: "Error: \(e.code)", message: e.domain, details: error.localizedDescription)
 }
 
-public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate {
+public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNotificationCenterDelegate, CLPushNotificationDelegate {
+  
+    
     internal init(channel: FlutterMethodChannel) {
         self.channel = channel
+        
     }
     
  
@@ -34,6 +37,8 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
         let instance = SwiftCLPushNotificationsPlugin(channel: channel)
         registrar.addApplicationDelegate(instance)
         registrar.addMethodCallDelegate(instance, channel: channel)
+        
+
     }
     
     let channel: FlutterMethodChannel
@@ -42,7 +47,7 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
     
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         
-        
+        CLPushNotificationHandler.sharedInstance.delegate = self
         switch call.method {
         case "requestNotificationPermissions":
             requestNotificationPermissions(call, result: result)
@@ -304,6 +309,13 @@ public class SwiftCLPushNotificationsPlugin: NSObject, FlutterPlugin, UNUserNoti
     func onResume(userInfo: [AnyHashable: Any]) {
         channel.invokeMethod("onResume", arguments: userInfo)
     }
+    
+    func throwError(error: String) {
+        
+        print("****Function: \(#function), line: \(#line)****\n--  error \(error)")
+        channel.invokeMethod("onServerResponse", arguments:error)
+    }
+    
 }
 
 extension UNNotificationCategoryOptions {

@@ -5,10 +5,19 @@
 import Foundation
 
 // MARK: - Welcome
-struct FullJson: Codable {
+public struct FullJson: Codable {
     let accessKey: String
     let registrationToken: RegistrationToken
     let attributes: [Attribute]
+    
+    
+    public enum CodingKeys: String, CodingKey {
+ 
+        
+        case accessKey
+        case registrationToken = "registrationUuid"
+        case attributes
+    }
 }
 
 // MARK: - Attribute
@@ -40,11 +49,12 @@ public struct Attribute: Codable {
 
 // MARK: - RegistrationToken
 struct RegistrationToken: Codable {
-    let os, phoneModel, sdkVersion: String
-    let  token, uniqueID: String
+    let os , phoneModel/*, sdkVersion */: String
+    let  /*token,*/ uniqueID: String
 
     enum CodingKeys: String, CodingKey {
-        case os, phoneModel, sdkVersion, token
+        case os, phoneModel
+//             , sdkVersion, token
         case uniqueID = "uniqueId"
     }
 }

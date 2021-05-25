@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:CL_PushNotifications/apns.dart';
 import 'package:CL_PushNotifications/flutter_apns.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +25,7 @@ class _MyAppState extends State<MyApp> {
     final connector = this.connector;
 
     connector.setAuthkey("91c4a1e7fb0d458faeceae08296954f9");
+    // connector.setAuthkey("");
 
     connector.configure(
       onLaunch: (data) => onPush('onLaunch', data),
@@ -73,6 +76,7 @@ class _MyAppState extends State<MyApp> {
     // storage.append('$name: ${payload.notification?.title}');
 
     print("${name} ${payload.toString()}");
+    inspect(payload);
     final action = UNNotificationAction.getIdentifier(payload.data);
 
     if (action != null && action != UNNotificationAction.defaultIdentifier) {

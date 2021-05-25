@@ -41,7 +41,8 @@ public class CLPushNotificationHandler {
     let uuid = UIDevice.current.identifierForVendor!.uuidString
     
     let mainURL = "http://dev.codelabs.inc/projects/mass_notification/public/api/data_of_access_key"
-    
+    var delegate : CLPushNotificationDelegate?
+
     
     
     private var registrationToken : RegistrationToken?
@@ -207,8 +208,10 @@ public class CLPushNotificationHandler {
         if String.isNilOrEmpty(string: authKey)
         //            || String.isNilOrEmpty(string: userID) || String.isNilOrEmpty(string: firstName) || String.isNilOrEmpty(string: lastName)
         {
-            
-            print("CLPushNotifications: Mandatory parameters(authKey) must not be empty.")
+            var message = "CLPushNotifications: Mandatory parameters(authKey) must not be empty."
+            print(message)
+            delegate?.throwError(error: message)
+
             self.isAllMandatoryFilled = false
             return
         }
@@ -224,6 +227,14 @@ public class CLPushNotificationHandler {
         
         
         //        self.isAuthenticated
+        if let version = Bundle(identifier: "org.cocoapods.CL-PushNotifications")?.infoDictionary?["CFBundleShortVersionString"] as? String {
+            print(version)
+            setAttribute(fieldName: "sdkVersion", alias: "Sdk Version", value: version, type: "text")
+
+        }
+        
+         setAttribute(fieldName: "osVersion", alias: "OS Version", value:  ProcessInfo().operatingSystemVersion.getFullVersion(), type: "text")
+        setAttribute(fieldName: "token", alias: "token", value: apnsToken ?? "", type: "text")
         
         
     }
@@ -245,7 +256,7 @@ public class CLPushNotificationHandler {
             
             let message = "CLPushNotifications: Mandatory parameters(authKey or token) must not be empty."
             print(message)
-            
+            delegate?.throwError(error: message)
             return message
         }
         
@@ -254,7 +265,7 @@ public class CLPushNotificationHandler {
         //        registrationToken = RegistrationToken(uni: uuid, token: apnsToken ?? "", phoneModel: UIDevice().type.rawValue, os: "IOS", sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), latitude: "", longitude: "")
         //        customer = Customer(customerCustomID: Int(self.userID!)!, firstName: self.firstName!, lastName: self.lastName!, personalNumber: self.personalNumber ?? "", email: self.email ?? "", dob: self.dob ?? "", address: self.address ?? "")
         
-        registrationToken = RegistrationToken(os: "IOS", phoneModel: UIDevice().type.rawValue ,sdkVersion: ProcessInfo().operatingSystemVersion.getFullVersion(), token: apnsToken ?? "", uniqueID: uuid)
+        registrationToken = RegistrationToken(os: "IOS",  phoneModel: UIDevice().type.rawValue , uniqueID: uuid)
         //        attributes.append(Attribute(alias: "Address", fieldName: "customer_address", value: "Hno. 123 sector 41 B korangi karachi"))
         //        attributes.append(Attribute(alias: "App User Name", fieldName: "firstName", value: self.firstName ?? " "))
         //        attributes.append(Attribute(alias: "Date Of Birth", fieldName: "dob", value: self.dob ?? " "))
@@ -280,14 +291,19 @@ public class CLPushNotificationHandler {
                 //                return message ?? ""
                 
 //                semaphore.signal()
-                
+                print("messageToReturn \(messageToReturn)")
+
+                self.delegate?.throwError(error: messageToReturn)
+
                 
             }
             
         } catch {
             //handle error
-            print(error)
+            print("error \(error)")
 //            semaphore.signal()
+            delegate?.throwError(error: error.localizedDescription)
+
 
             return error.localizedDescription
         }
@@ -302,14 +318,15 @@ public class CLPushNotificationHandler {
     public func setAttribute( fieldName fName : String, alias:String, value:String, type: String) {
         print("****Function: \(#function), line: \(#line)****\n-- ")
         
-   
+        var message = ""
 
         if String.isNilOrEmpty(string: fName)
             || String.isNilOrEmpty(string: alias) || String.isNilOrEmpty(string: value)
         {
-            
-            print("CLPushNotifications: Mandatory parameters of attribute must not be empty.")
-            
+            message = "CLPushNotifications: Mandatory parameters of attribute must not be empty."
+            print(message)
+            delegate?.throwError(error: message)
+
             return
         }
         
@@ -331,13 +348,19 @@ public class CLPushNotificationHandler {
             
             self.attributes[row].alias = alias
             self.attributes[row].value = value
+            message = "CLPushNotifications: Attribute \(self.attributes[row].fieldName) has been modified."
+            print(message)
             
-            print("CLPushNotifications: Attribute \(self.attributes[row].fieldName) has been modified.")
+//            delegate?.throwError(error: message)
 
         }else{
             self.attributes.append(Attribute(fieldName: fieldName, alias: alias, value: value, type: type))
-            print("CLPushNotifications: Attribute \(fieldName) has been added.")
+            message = "CLPushNotifications: Attribute \(fieldName) has been added."
             
+            print(message)
+            
+//            delegate?.throwError(error: message)
+
         }
         
         runAuthParaService()
@@ -348,7 +371,7 @@ public class CLPushNotificationHandler {
     
     public func setAttribute(attributes newAttributes: [Attribute]){
         print("****Function: \(#function), line: \(#line)****\n-- ")
-        
+        var message = ""
         for attributeRecord in newAttributes {
             
             if let row = (self.attributes.firstIndex(where: { attribute in
@@ -358,12 +381,20 @@ public class CLPushNotificationHandler {
                 
                 self.attributes[row].alias = attributeRecord.alias
                 self.attributes[row].value = attributeRecord.value
-                print("CLPushNotifications: Attribute \(self.attributes[row].fieldName) has been modified.")
+                message = "CLPushNotifications: Attribute \(self.attributes[row].fieldName) has been modified."
+                print(message)
+
+                delegate?.throwError(error: message)
+
                 
             }else{
                 self.attributes.append(attributeRecord)
-                print("CLPushNotifications: Attribute \(attributeRecord.fieldName) has been added.")
                 
+                message = "CLPushNotifications: Attribute \(attributeRecord.fieldName) has been added."
+
+                print(message)
+                delegate?.throwError(error: message)
+
             }
             
         }
@@ -390,4 +421,7 @@ public class CLPushNotificationHandler {
 
 public protocol PushNotificationSubscriber {
     func newPushNotificationReceived(aps: [AnyHashable : Any])
+}
+protocol CLPushNotificationDelegate  {
+    func throwError(error: String)
 }
