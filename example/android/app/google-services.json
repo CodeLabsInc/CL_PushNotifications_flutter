@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "374710219703",
+    "project_id": "experimentation-286708",
+    "storage_bucket": "experimentation-286708.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:374710219703:android:9ed3e3f2cc344cced12e32",
+        "android_client_info": {
+          "package_name": "inc.codelabs.clpushnotifications_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "374710219703-nf4lc8feba4692mv9evtmk74d9dcqn48.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA6rsigj-gt3WFgMuNJKo7lQopLnKGDioY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "374710219703-nf4lc8feba4692mv9evtmk74d9dcqn48.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
